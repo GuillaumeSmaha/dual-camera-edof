@@ -31,6 +31,10 @@ def extract_edof(data, idx, fname):
 	img = Image.frombuffer('L', (columns, rows), data[idx:], 'raw', 'L', 0, 0)
 	if orientation == 0x10:
 		img = img.transpose(Image.FLIP_TOP_BOTTOM)
+	if orientation == 0x12:
+		img = img.transpose(Image.FLIP_LEFT_RIGHT)
+	if orientation == 0x13:
+		img = img.transpose(Image.TRANSPOSE)
 
 	if show_edof:
 		img.show()
@@ -54,7 +58,7 @@ def scan_segment(data, idx, fname, segment_index):
 					i += 2
 					continue
 
-				if data[i + 1] == 0xda: # SOA
+				if data[i + 1] == 0xda: # SOS
 					j = i + 2
 					while not (data[j] == 0xff and data[j + 1] == 0xd9):
 						j += 1
@@ -108,9 +112,9 @@ def main(fname):
 
 	print ("\t* scanning file")
 
-	if  data.find(bytes([0x00, 0x65, 0x64, 0x6f, 0x66, 0x00])) < 0:
-		print("No EDOF header found")
-		return False
+	# if  data.find(bytes([0x00, 0x65, 0x64, 0x6f, 0x66, 0x00])) < 0:
+	# 	print("No EDOF header found")
+	# 	return False
 
 	idx = 0
 	segment_index = 0
@@ -119,8 +123,15 @@ def main(fname):
 		if r == -1:
 			if segment_index > 1:
 				# No standard segment was found. Search for EDOF
+				print('search for edof')
 				return extract_edof(data, idx, fname)
 			else:
+				outfname = (''.join(fname.split('.')[:-1])) + ('-%d.data' % segment_index)
+				print("\t * saving last segment to %s" % outfname)
+				f = open(outfname, "wb")
+				f.write(data[idx:])
+				f.close()
+				print('end for edof: '+str(r))
 				return False
 
 		segment_index += 1

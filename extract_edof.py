@@ -54,7 +54,7 @@ def scan_segment(data, idx, fname, segment_index):
 					i += 2
 					continue
 
-				if data[i + 1] == 0xda: # SOA
+				if data[i + 1] == 0xda: # SOS
 					j = i + 2
 					while not (data[j] == 0xff and data[j + 1] == 0xd9):
 						j += 1
